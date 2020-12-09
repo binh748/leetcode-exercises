@@ -12,7 +12,7 @@ more elegant version. */
 
 WITH dense_rank_cte AS (
     SELECT id, login_date,
-           DENSE_RANK() OVER(PARTITION BY id ORDER BY login_date) AS dense_rank_num 
+           DENSE_RANK() OVER(PARTITION BY id ORDER BY login_date) AS dense_rank_num
       FROM Logins
 ),
 grouping_cte AS (
@@ -39,11 +39,11 @@ SELECT DISTINCT g.id, a.name
 -- This solution, though, is slower because it creates a cross join between the two tables
 -- which is costly, especially for larger tables.
 
-/* The below solution works by doing a self-join (which createa a cross join of the table with itself)
-and then filtering that cross join for only records where the difference between dates is between 0 and 4,
-so only l2.login_dates that meet that criteria will be in the result set. That then allows
+/* The below solution works by doing a self-join (it's not a cross join because of the two ON conditions)
+and filtering that self-join for records where the difference between dates is between 0 and 4,
+so only l2.login_dates that meet that criteria will be joined with the original table. Doing so allows
 us to do a group by id and login_date so then we can see which of those groupings have a count
-of distinct l2.login_dates that equals 5 (5 is the right number here because that represents
+of distinct l2.login_dates that equals 5 (5 because that represents
 5 consecutive dates). The distinct id and name from that grouping is the right answer. */
 
  SELECT DISTINCT l1.id, a.name
