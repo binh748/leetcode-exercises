@@ -68,7 +68,8 @@ SUM(CASE WHEN "Status" LIKE '*cancelled*' THEN 1 END)
 
 WITH status_cte AS (
     SELECT *,
-           CASE WHEN people >= 100 THEN 'high_traffic' ELSE 'low_traffic' END AS status
+           CASE WHEN people >= 100 THEN 'high_traffic'
+                ELSE 'low_traffic' END AS status
       FROM Stadium
      ORDER BY id
 ),
@@ -89,25 +90,25 @@ grouping_differentiated_cte AS (
      ORDER BY id
 ),
 agg_cte AS (
-    SELECT groupings_diff, SUM(CASE WHEN people >= 100 THEN 1 ELSE 0 END) AS num_days_high_traffic
+    SELECT groupings_diff, SUM(CASE WHEN status = 'high_traffic' THEN 1 ELSE 0 END) AS num_days_high_traffic
       FROM grouping_differentiated_cte
      GROUP BY 1
-    HAVING SUM(CASE WHEN people >= 100 THEN 1 ELSE 0 END) >= 3
+    HAVING SUM(CASE WHEN status = 'high_traffic' THEN 1 ELSE 0 END) >= 3
 )
 SELECT id, visit_date, people
   FROM grouping_differentiated_cte
  WHERE groupings_diff IN (SELECT groupings_diff FROM agg_cte)
  ORDER BY visit_date;
 
--- Alternatively, I can make sure to only count the records that are the high_traffic
--- records when I do my aggregation and only show the records that are high_traffic
+-- Alternatively, in the main query, I can filter to only show the records that are high_traffic
 -- in my answer. This doesn't get rid of the problem of the groupings potentially
 -- mixing low_traffic and high_traffic records together; this just allows me to filter
 -- out the low_traffic records from groupings that have both types of records.
 
- WITH status_cte AS (
+WITH status_cte AS (
     SELECT *,
-           CASE WHEN people >= 100 THEN 'high_traffic' ELSE 'low_traffic' END AS status
+           CASE WHEN people >= 100 THEN 'high_traffic'
+                ELSE 'low_traffic' END AS status
       FROM Stadium
      ORDER BY id
 ),
@@ -122,11 +123,10 @@ grouping_cte AS (
      ORDER BY id
 ),
 agg_cte AS (
-    SELECT groupings, SUM(CASE WHEN people >= 100 THEN 1 ELSE 0 END) AS num_days_high_traffic
+    SELECT groupings, SUM(CASE WHEN status = 'high_traffic' THEN 1 ELSE 0 END) AS num_days_high_traffic
       FROM grouping_cte
-     WHERE status = 'high_traffic'
      GROUP BY 1
-    HAVING SUM(CASE WHEN people >= 100 THEN 1 ELSE 0 END) >= 3
+    HAVING SUM(CASE WHEN status = 'high_traffic' THEN 1 ELSE 0 END) >= 3
 )
 SELECT id, visit_date, people
   FROM grouping_cte
